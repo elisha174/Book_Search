@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Container, Card, Button, Row, Col } from 'react-bootstrap';
-
 import { getMe, deleteBook } from '../utils/API';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 import type { User } from '../models/User';
+import { useQuery } from '@apollo/client';
+import { GET_ME } from '../utils/queries';
+import { useMutation } from '@apollo/client';
+import { REMOVE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
-  const [userData, setUserData] = useState<User>({
-    username: '',
-    email: '',
-    password: '',
-    savedBooks: [],
-  });
+  // const [userData, setUserData] = useState<User>({
+  //   username: '',
+  //   email: '',
+  //   password: '',
+  //   savedBooks: [],
+  // });
+
+  const [userData, setUserData] = useQuery(GET_ME);
+  // useQuery hook automatically handles the loading state, so we don't need to manage it manually
+  // and will update the userData state when the query result changes
+  // userData will be an object containing the user's data, including savedBooks
+  // if the user is not logged in, userData will be an empty object
+  // if the user is logged in, userData will contain the user's information
+  // and savedBooks array
+
+
 
   // use this to determine if `useEffect()` hook needs to run again
   const userDataLength = Object.keys(userData).length;
+  const [removeBookMutation] = useMutation(REMOVE_BOOK);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -51,7 +65,10 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
+      // const response = await deleteBook(bookId, token);
+      const response = await removeBookMutation({
+        variables: { bookId },
+      });
 
       if (!response.ok) {
         throw new Error('something went wrong!');
